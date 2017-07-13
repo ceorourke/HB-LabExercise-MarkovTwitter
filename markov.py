@@ -6,17 +6,21 @@ import twitter
 import os
 
 
-def open_and_read_file(file_path1, file_path2):
+def open_and_read_file(statuses_1, statuses_2):
     """Take file path as string; return text as string.
 
     Takes string that are file names, opens the files, and turns
     the files' contents into one string of text.
     """
 
-    contents1 = open(file_path1).read()
-    contents2 = open(file_path2).read()
+    # contents1 = open(file_path1).read()
+    # contents2 = open(file_path2).read()
 
-    contents = contents1 + contents2
+    # contents = contents1 + contents2
+    contents = [s.text for s in statuses_1] + [s.text for s in statuses_2]
+    contents = ' '.join(contents)
+
+    # contents = statuses_1 + statuses_2
 
     return contents
 
@@ -118,7 +122,15 @@ def make_text(chains, n):
     # returns the list of words split by a space
     return " ".join(words)
 
-def tweet(random_text):
+
+def get_statuses(api):
+    statuses_1 = api.GetUserTimeline(screen_name='realDonaldTrump')
+    statuses_2 = api.GetUserTimeline(screen_name='dog_rates')
+
+    return (statuses_1,statuses_2)
+
+
+def tweet(n):
     api = twitter.Api(
         consumer_key=os.environ['TWITTER_CONSUMER_KEY'],
         consumer_secret=os.environ['TWITTER_CONSUMER_SECRET'],
@@ -127,25 +139,34 @@ def tweet(random_text):
         )
     print api.VerifyCredentials()
 
+    statuses_1, statuses_2 = get_statuses(api)
+    input_text = open_and_read_file(statuses_1, statuses_2)
+    chains = make_chains(input_text, n)
+    random_text = make_text(chains, n)
+
     status = api.PostUpdate(random_text)
+
     print status.text
 
+
 # takes in the first file to be read
-input_path_1 = sys.argv[1]
-# takes in the second file to be read
-input_path_2 = sys.argv[2]
+# input_path_1 = sys.argv[1]
+# # takes in the second file to be read
+# input_path_2 = sys.argv[2]
 # converts the 3rd argument to int
-n = int(sys.argv[3])
+n = int(sys.argv[1])
 
 # Open the files and turn them into one long string
-input_text = open_and_read_file(input_path_1, input_path_2)
+#input_text = open_and_read_file(input_path_1, input_path_2)
+# get_statuses(api)
 
-# Get a Markov chain
-chains = make_chains(input_text, n)
+# input_text = open_and_read_file(statuses_1, statuses_2)
+# # Get a Markov chain
+# chains = make_chains(input_text, n)
 
-# Produce random text
-random_text = make_text(chains, n)
+# # Produce random text
+# random_text = make_text(chains, n)
 
 #print random_text
 
-tweet(random_text)
+tweet(n)
